@@ -6,20 +6,23 @@ import Data.Text (Text)
 import Import
 
 data Person = Person
-  { name :: Text
-  , phoneNumber :: Text
+  { email :: Text
+  , name :: Text
+  , telephone :: Text
   } deriving Show
   
-instance ToJSON Person where
-  toJSON Person {..} = object
-    [ "name" .= name
-    , "phone_number"   .= phoneNumber
+instance ToJSON Model.Person.Person where
+  toJSON Model.Person.Person {..} = object
+    [ "email" .= email
+    , "name" .= name
+    , "telephone"   .= telephone
     ]
 
-instance FromJSON Person where
-  parseJSON (Object o) = Person
-    <$> (o .: "name")
-    <*> (o .: "phone_number")
+instance FromJSON Model.Person.Person where
+  parseJSON (Object o) = Model.Person.Person
+    <$> (o .: "email")
+    <*> (o .: "name")
+    <*> (o .: "telephone")
   
   parseJSON _ = mzero
 

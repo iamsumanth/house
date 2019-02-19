@@ -16,3 +16,18 @@ Comment json -- Adding "json" causes ToJSON and FromJSON instances to be derived
     userId UserId Maybe
     deriving Eq
     deriving Show
+
+Person
+    email Text
+    name Text
+    telephone Text
+    Primary email
+    UniquePerson email
+    deriving Show
+House
+    number Text
+    street Text
+    pincode Text
+    rent Int
+    ownerId PersonId
+    deriving Show

@@ -4,24 +4,23 @@ module Model.House where
 
 import Import
 import Model.Address (Address)
-import Model.Person (Person)
-
+import qualified Model.Person as DCP
 
 data House = House
   { address :: Address
-  , owner   :: Person
+  , owner   :: DCP.Person
   , rent    :: Int
   } deriving Show
 
-instance ToJSON House where
-  toJSON House {..} = object
+instance ToJSON Model.House.House where
+  toJSON Model.House.House {..} = object
     [ "address" .= address
     , "owner"   .= owner
     , "rent"    .= rent
     ]
 
-instance FromJSON House where
-  parseJSON (Object o) = House
+instance FromJSON Model.House.House where
+  parseJSON (Object o) = Model.House.House
     <$> (o .: "address")
     <*> (o .: "owner")
     <*> (o .: "rent")
