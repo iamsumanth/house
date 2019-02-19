@@ -1,9 +1,21 @@
 -- By default this file is used by `persistFileWith` in Model.hs (which is imported by Foundation.hs)
 -- Syntax for this file here: https://github.com/yesodweb/persistent/blob/master/docs/Persistent-entity-syntax.md
 
+Address json
+    number Text
+    street Text
+    pincode Text
+    deriving Show
+Person json
+    email Text
+    name Text
+    telephone Text
+    addressId AddressId
+    deriving Show
 User
     ident Text
     password Text Maybe
+    personId PersonId
     UniqueUser ident
     deriving Typeable
 Email
@@ -17,17 +29,8 @@ Comment json -- Adding "json" causes ToJSON and FromJSON instances to be derived
     deriving Eq
     deriving Show
 
-Person
-    email Text
-    name Text
-    telephone Text
-    Primary email
-    UniquePerson email
-    deriving Show
-House
-    number Text
-    street Text
-    pincode Text
+House json
     rent Int
     ownerId PersonId
+    addressId AddressId
     deriving Show

@@ -166,11 +166,11 @@ instance Yesod App where
     isAuthorized FaviconR _ = return Authorized
     isAuthorized RobotsR _ = return Authorized
     isAuthorized (StaticR _) _ = return Authorized
-    isAuthorized HouseR _ = return Authorized
 
     -- the profile route requires that the user is authenticated, so we
     -- delegate to that function
     isAuthorized ProfileR _ = isAuthenticated
+    isAuthorized HouseR _ = isAuthenticated
 
     -- This function creates static content files in the static folder
     -- and names them based on a hash of their content. This allows
@@ -252,10 +252,14 @@ instance YesodAuth App where
         x <- getBy $ UniqueUser $ credsIdent creds
         case x of
             Just (Entity uid _) -> return $ Authenticated uid
-            Nothing -> Authenticated <$> insert User
-                { userIdent = credsIdent creds
-                , userPassword = Nothing
-                }
+            Nothing -> do
+              addr <- insert $ Address "" "" ""
+              personInfo <- insert $ Person "a@email.com" "A" "" addr
+              Authenticated <$> insert User
+                  { userIdent = credsIdent creds
+                  , userPassword = Nothing
+                  , userPersonId = personInfo
+                  }
 
     -- You can add other plugins like Google Email, email or OAuth here
     authPlugins :: App -> [AuthPlugin App]

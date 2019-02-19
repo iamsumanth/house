@@ -2,33 +2,34 @@
 module Handler.House where
 
 import Import
-import qualified Model.House as DCH
-import qualified Model.Person as DCP
-import Model.Address
+import Model.HouseReq
 
 getHouseR :: Handler Value
-getHouseR = return $ toJSON getHouses
+getHouseR = do
+ houses <- runDB $ selectList [] [Asc HouseRent]
+ return $ toJSON houses
 
 postHouseR :: Handler TypedContent
 postHouseR = do
-  (DCH.House address owner rent) <- requireJsonBody :: Handler DCH.House
-  person <- runDB $ getBy (UniquePerson (DCP.email owner))
-  let house' = getHouseModel address (entityKey (getPerson person)) rent
+  (HouseReq address' rent') <- requireJsonBody :: Handler HouseReq
+  maybeCurrentUserId <- maybeAuthId
+  userInfo <- runDB $ getEntity (getUserId maybeCurrentUserId)
+  let personId = userPersonId (entityVal (getUser userInfo))
+  person <- runDB $ getEntity personId
+  addressId <- runDB $ insert address'
+  let house' = getHouseModel addressId (entityKey (getPerson person)) rent'
   _ <- runDB $ insertEntity house'
   sendResponseNoContent
 
 
-getHouses :: [DCH.House]
-getHouses = [DCH.House (Address "12/B" "Gachibowli" "500032") (DCP.Person "shashi@shashi.com" "Shashi" "12345") 10000]
-
-
-getHouseModel :: Address -> PersonId -> Int -> House
-getHouseModel address personId rent = House number' street' pinCode' rent personId
-  where
-    number' = number address
-    street' = street address
-    pinCode' = pinCode address
-    
+getHouseModel :: AddressId -> PersonId -> Int -> House
+getHouseModel addressId personId rent' = House rent' personId addressId
 
 getPerson :: Maybe (Entity Person) -> Entity Person
 getPerson (Just p) = p
+
+getUser :: Maybe (Entity User) -> Entity User
+getUser (Just p) = p
+
+getUserId :: Maybe (AuthId App) -> UserId
+getUserId (Just p) = p
