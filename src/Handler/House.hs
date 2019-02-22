@@ -3,33 +3,32 @@ module Handler.House where
 
 import Import
 import Model.HouseReq
+import Model.HouseResp
 
 getHouseR :: Handler Value
 getHouseR = do
- houses <- runDB $ selectList [] [Asc HouseRent]
- return $ toJSON houses
+  housesWithReference <- runDB $ selectList [] [Asc HouseRent]
+  houses <- sequence (Import.map getCompleteHouse housesWithReference)
+  return $ toJSON houses
+
 
 postHouseR :: Handler TypedContent
 postHouseR = do
   (HouseReq address' rent') <- requireJsonBody :: Handler HouseReq
   maybeCurrentUserId <- maybeAuthId
-  userInfo <- runDB $ getEntity (getUserId maybeCurrentUserId)
-  let personId = userPersonId (entityVal (getUser userInfo))
-  person <- runDB $ getEntity personId
+  loggedInUser <- runDB $ getJust (getUserId maybeCurrentUserId)
   addressId <- runDB $ insert address'
-  let house' = getHouseModel addressId (entityKey (getPerson person)) rent'
+  let house' = House rent' (userPersonId loggedInUser) addressId
   _ <- runDB $ insertEntity house'
   sendResponseNoContent
 
 
-getHouseModel :: AddressId -> PersonId -> Int -> House
-getHouseModel addressId personId rent' = House rent' personId addressId
-
-getPerson :: Maybe (Entity Person) -> Entity Person
-getPerson (Just p) = p
-
-getUser :: Maybe (Entity User) -> Entity User
-getUser (Just p) = p
-
 getUserId :: Maybe (AuthId App) -> UserId
 getUserId (Just p) = p
+
+getCompleteHouse :: Entity House -> Handler HouseResp
+getCompleteHouse house = runDB $ do
+  let rent' = houseRent (entityVal house)
+  person <- getJust (houseOwnerId (entityVal house))
+  address' <- getJust (houseAddressId (entityVal house))
+  return (HouseResp rent' person address')
