@@ -15,16 +15,14 @@ getHouseR = do
 postHouseR :: Handler TypedContent
 postHouseR = do
   (HouseReq address' rent') <- requireJsonBody :: Handler HouseReq
-  maybeCurrentUserId <- maybeAuthId
-  loggedInUser <- runDB $ getJust (getUserId maybeCurrentUserId)
+  currentUserId <- requireAuthId
+  loggedInUser <- runDB $ getJust currentUserId
   addressId <- runDB $ insert address'
   let house' = House rent' (userPersonId loggedInUser) addressId
   _ <- runDB $ insertEntity house'
   sendResponseNoContent
 
 
-getUserId :: Maybe (AuthId App) -> UserId
-getUserId (Just p) = p
 
 getCompleteHouse :: Entity House -> Handler HouseResp
 getCompleteHouse house = runDB $ do
