@@ -13,4 +13,5 @@
 
 /profile ProfileR GET
 
-/houses HouseR GET POST
+/houses HousesR GET POST
+/houses/#HouseId HouseR DELETE GET

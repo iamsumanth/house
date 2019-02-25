@@ -5,15 +5,15 @@ import Import
 import Model.HouseReq
 import Model.HouseResp
 
-getHouseR :: Handler Value
-getHouseR = do
+getHousesR :: Handler Value
+getHousesR = do
   housesWithReference <- runDB $ selectList [] [Asc HouseRent]
   houses <- sequence (Import.map getCompleteHouse housesWithReference)
   return $ toJSON houses
 
 
-postHouseR :: Handler TypedContent
-postHouseR = do
+postHousesR :: Handler TypedContent
+postHousesR = do
   (HouseReq address' rent') <- requireJsonBody :: Handler HouseReq
   currentUserId <- requireAuthId
   loggedInUser <- runDB $ getJust currentUserId
@@ -22,6 +22,17 @@ postHouseR = do
   _ <- runDB $ insertEntity house'
   sendResponseNoContent
 
+
+getHouseR :: HouseId -> Handler Value
+getHouseR houseId = do
+  house' <- runDB $ getJustEntity houseId
+  fmap toJSON (getCompleteHouse house')
+
+
+deleteHouseR :: HouseId -> Handler Value
+deleteHouseR houseId = do
+  _ <- runDB $ delete houseId
+  sendResponseNoContent
 
 
 getCompleteHouse :: Entity House -> Handler HouseResp

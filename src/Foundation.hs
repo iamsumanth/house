@@ -170,7 +170,8 @@ instance Yesod App where
     -- the profile route requires that the user is authenticated, so we
     -- delegate to that function
     isAuthorized ProfileR _ = isAuthenticated
-    isAuthorized HouseR _ = isAuthenticated
+    isAuthorized (HouseR _) _ = isAuthenticated
+    isAuthorized HousesR _ = isAuthenticated
 
     -- This function creates static content files in the static folder
     -- and names them based on a hash of their content. This allows
