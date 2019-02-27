@@ -11,7 +11,6 @@ getHousesR = do
   houses <- mapM (getCompleteHouse . entityVal) housesWithReference
   return $ toJSON houses
 
-
 postHousesR :: Handler TypedContent
 postHousesR = do
   (HouseReq address' rent') <- requireJsonBody :: Handler HouseReq
