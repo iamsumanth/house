@@ -1,4 +1,5 @@
 {-# LANGUAGE NoImplicitPrelude #-}
+{-# LANGUAGE OverloadedStrings #-}
 module Handler.House where
 
 import Import
@@ -29,13 +30,24 @@ getHouseR houseId = do
 
 deleteHouseR :: HouseId -> Handler Value
 deleteHouseR houseId = do
-  _ <- runDB $ delete houseId
-  sendResponseNoContent
+  house' <- runDB $ get404 houseId
+  currentUserId <- requireAuthId
+  loggedInUser <- runDB $ getJust currentUserId
+  let isUserAuthorizedToDelete = isUserOwnerOfTheHouse loggedInUser house'
+  if isUserAuthorizedToDelete
+    then do
+      _ <- runDB $ delete houseId
+      sendResponseNoContent
+    else
+      permissionDenied "User does not own this house"
 
+
+isUserOwnerOfTheHouse :: User -> House -> Bool
+isUserOwnerOfTheHouse user house = userPersonId user == houseOwnerId house
 
 getCompleteHouse :: House -> Handler HouseResp
 getCompleteHouse house = runDB $ do
   let rent' = houseRent house
-  person <- getJust (houseOwnerId  house)
+  person <- getJust (houseOwnerId house)
   address' <- getJust (houseAddressId house)
   return (HouseResp rent' person address')
