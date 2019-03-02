@@ -92,15 +92,16 @@ authenticateAs (Entity _ u) = do
 createUser :: Text -> YesodExample App (Entity User)
 createUser ident = runDB $ do
     addressId <- insert Address
-        { addressNumber = ""
-        , addressStreet = ""
-        , addressPincode = ""
+        { addressNumber = "24/B"
+        , addressStreet = "Gachibowli"
+        , addressPincode = "500032"
         }
     personId <- insert Person
-        { personEmail = ""
-        , personName = ""
+        { personEmail = "a@email.com"
+        , personName = "A"
         , personTelephone = ""
-        , personAddressId = addressId}
+        , personAddressId = addressId
+        }
     user <- insertEntity User
         { userIdent = ident
         , userPassword = Nothing
