@@ -91,9 +91,20 @@ authenticateAs (Entity _ u) = do
 -- checking is switched off in wipeDB for those database backends which need it.
 createUser :: Text -> YesodExample App (Entity User)
 createUser ident = runDB $ do
+    addressId <- insert Address
+        { addressNumber = ""
+        , addressStreet = ""
+        , addressPincode = ""
+        }
+    personId <- insert Person
+        { personEmail = ""
+        , personName = ""
+        , personTelephone = ""
+        , personAddressId = addressId}
     user <- insertEntity User
         { userIdent = ident
         , userPassword = Nothing
+        , userPersonId = personId
         }
     _ <- insert Email
         { emailEmail = ident
@@ -101,3 +112,22 @@ createUser ident = runDB $ do
         , emailVerkey = Nothing
         }
     return user
+
+createDefaultHouse :: Int -> YesodExample App (Entity House)
+createDefaultHouse rent = join $ runDB $ do
+    addressId <- insert Address
+        { addressNumber = "24/B"
+        , addressStreet = "Gachibowli"
+        , addressPincode = "500032"
+        }
+    personId <- insert Person
+        { personEmail = "a@email.com"
+        , personName = "A"
+        , personTelephone = ""
+        , personAddressId = addressId
+        }
+    return (createHouse rent personId addressId)
+    
+
+createHouse :: Int -> PersonId -> AddressId -> YesodExample App (Entity House)
+createHouse rent personId addressId = runDB $ insertEntity (House rent personId addressId)
