@@ -114,20 +114,14 @@ createUser ident = runDB $ do
         }
     return user
 
-createDefaultHouse :: Int -> YesodExample App (Entity House)
-createDefaultHouse rent = join $ runDB $ do
+createHouseForUser :: Int -> User -> YesodExample App (Entity House)
+createHouseForUser rent user = join $ runDB $ do
     addressId <- insert Address
         { addressNumber = "24/B"
         , addressStreet = "Gachibowli"
         , addressPincode = "500032"
         }
-    personId <- insert Person
-        { personEmail = "a@email.com"
-        , personName = "A"
-        , personTelephone = ""
-        , personAddressId = addressId
-        }
-    return (createHouse rent personId addressId)
+    return (createHouse rent (userPersonId user) addressId)
     
 
 createHouse :: Int -> PersonId -> AddressId -> YesodExample App (Entity House)

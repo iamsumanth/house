@@ -25,12 +25,13 @@ spec =
         bodyEquals "[]"
       
       it "should return all houses with address and owner information" $ do
-        _ <- createDefaultHouse 1000
+        userEntity <- createUser "bar"
+        _ <- createHouseForUser 1000 (entityVal userEntity)
         get HousesR
         statusIs 200
         bodyEquals expectedHouses
       
-      it "should return unauthenticated when user without logging in tries to create house" $ do
+      it "should return permission denied when user without logging in tries to create house" $ do
         postBody HousesR "{\"rent\":2000,\"address\":{\"pincode\":\"500032\",\"street\":\"Hyderabad\",\"number\":\"24/B\"}}"
         statusIs 403
       
@@ -48,7 +49,27 @@ spec =
         statusIs 404
       
       it "should return house details when house is available" $ do
-        _ <- createDefaultHouse 1000
+        userEntity <- createUser "bar"
+        _ <- createHouseForUser 1000 (entityVal userEntity)
         get ("/houses/1" :: Text)
         statusIs 200
         bodyEquals expectedHouse
+
+      it "should return permission denied when unauthenticated user tries to delete house" $ do
+        performMethod "DELETE" ("/houses/1" :: Text)
+        statusIs 403
+
+      it "should return permission denied when random user tries to delete house instead of owner" $ do
+        user1Entity <- createUser "user1"
+        user2Entity <- createUser "user2"
+        _ <- createHouseForUser 1000 (entityVal user1Entity)
+        authenticateAs user2Entity
+        performMethod "DELETE" ("/houses/1" :: Text)
+        statusIs 403
+
+      it "should delete house when owner requests to delete" $ do
+        userEntity <- createUser "user1"
+        _ <- createHouseForUser 1000 (entityVal userEntity)
+        authenticateAs userEntity
+        performMethod "DELETE" ("/houses/1" :: Text)
+        statusIs 204
